@@ -1,4 +1,4 @@
-import express from "express";
+import express, { response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import pool from "../db.js";
@@ -7,9 +7,22 @@ const router = express.Router();
 
 // signup
 router.post("/signup", async (req, res) => {
-  const { name, email, role, password } = req.body;
+  const { name, email, role, password, confirmPassword } = req.body;
+
+  if(password !== confirmPassword){
+    return res.status(400).json({message: "Passwords do not match"});
+  }
 
   try {
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+
+    if(rows.length>0){
+      return res.status(400).json({message: "User already exists"});
+    }
+    
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
