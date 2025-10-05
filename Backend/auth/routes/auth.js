@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import pool from "../db.js";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import validator from "validator";
 
 
 dotenv.config();
@@ -23,6 +24,7 @@ const transporter = nodemailer.createTransport(
 );
 
 async function sendEmail(to, subject, html){
+  console.log(to);
   await transporter.sendMail({
     from: process.env.USER_EMAIL,
     to, subject, html
@@ -46,6 +48,14 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({message: "User already exists"});
     }
 
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    if(!email.endsWith("nits.ac.in")){
+      return res.status(400).json({message: "Email must end with nits.ac.in"});
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [data] = await pool.query(
@@ -61,9 +71,9 @@ router.post("/signup", async (req, res) => {
     await sendEmail(
       email,
       "Verify your account",
-      `<p>Hello, ${name}, </p>
+      `<p>Hello ${name}, </p>
       <p> Click here to verify your account: </p>
-      <a href ="${verifyLink}">${verifyLink}</a>`
+      <a href="${verifyLink}">${verifyLink}</a>`
     );
 
     res.status(201).json({ message: "Signup successful. Please verify you email" });

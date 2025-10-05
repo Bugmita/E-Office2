@@ -11,6 +11,10 @@ const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, "../../FrontEnd/Auth")));
 
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../FrontEnd/Auth/final.html"));
+});
+
 app.use(express.json());
 app.use(cookieParser());
 
