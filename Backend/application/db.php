@@ -20,4 +20,5 @@ function getPDO(): PDO{
     return $pdo;
 
 }
+
 ?>
