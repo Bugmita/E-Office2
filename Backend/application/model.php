@@ -5,14 +5,13 @@
 require_once 'db.php';
 
 
-// store signature
-function storeSignature(){}
+
 
 
 // to store action at each level
 function logAction($appId, $from, $to, $action, $authId, $comment =null){
     $pdo= getPDO();
-    $data= $pdo->prepare("INSERT INTO applications(appId, from, to, action, authId, comment) VALUES (?, ?, ?, ?, ?, ?)");
+    $data= $pdo->prepare("INSERT INTO applicationLogs(appId, from, to, action, authId, comment) VALUES (?, ?, ?, ?, ?, ?)");
     $data->execute([$appId, $from, $to, $action, $authId, $comment]);
     return $pdo->lastInsertId();
 }
@@ -39,6 +38,15 @@ function submitApplication($appId){
 }
 
 
+//get all applications 
+function getApplications(){
+    $pdo = getPDO();
+    $data = $pdo->prepare("SELECT id, currentLevel, status, createdAt FROM applications ORDER BY createdAt DESC");
+    $data->execute();
+    return $data->fetchAll();
+}
+
+
 //fetch application
 function fetchApplication($appId){
     $pdo = getPDO();
@@ -49,6 +57,37 @@ function fetchApplication($appId){
         $app['data'] =json_decode($app['data'], true);
     }
     return $app;
+}
+
+
+// store signature done at each level
+function storeSignature($appId, $logId, $actId, $level, $mode, $signatureData, $metaData = null){
+    $pdo = getPDO();
+    $metaJson = $metaData? json_encode($metaData) : null;
+    $data = $pdo->prepare("INSERT INTO applicationSigantures(appId, logId, actId, level, mode, signautreData, metaData) VALUES(?, ?, ?, ?, ?, ?, ?");
+    $data->execute([$appId, $logId, $actId, $level, $mode, $signatureData, $metaJson]);
+
+    return $pdo->lastInsertId();
+}
+
+
+//verify if signature uploaded correctly
+function verifySignature($signatureData){
+    if (empty($signatureData)) return false;
+    if(strpos($signatureData, 'data:image/') === 0) return true;
+    if(base64_decode($signatureData, true) !== false) return true;
+
+    return false;
+}
+
+// add signature 
+function addSignature($userId, $signatureData){
+    $pdo = getPDO();
+    $data = $pdo->prepare("UPDATE users SET signatureData =? WHERE id=?");
+    $data->execute([$signatureData, $userId]);
+
+    return true;
+
 }
 
 
