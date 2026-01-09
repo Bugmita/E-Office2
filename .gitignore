@@ -3,7 +3,7 @@
 # =========================
 
 # Database credentials
-config/db.php
+Backend related docAndauth/config/db.php
 .env
 
 # Uploaded files (documents, images)
